@@ -6,33 +6,48 @@ import cryptography.exceptions
 import os
 import argparse
 
-def encryption(file, passwd):
+def keygen(passwd):
+    # Randomly generated key to encrypt files
+    k1 = os.urandom(16)
+    # Salt is the spice of life
+    salt = os.urandom(16)
+    kdf = PBKDF2HMAC(hashes.SHA256(),32,salt,480000)
+    # k2 derived from password to encrypt k1
+    k2 = kdf.derive(passwd.encode())
+    # Initialization Vector for AES256
+    iv = os.urandom(16)
+    # Encrypting k1
+    cipher = Cipher(algorithms.AES256(k2), modes.CBC(iv))
+    k1_encrypted = cipher.encryptor().update(k1) + cipher.encryptor().finalize()
+    # Hash k2 for storing
+    digest = hashes.Hash(hashes.SHA256())
+    k2_hashed = digest.update(k2) + digest.finalize()
+    # Generate plaintext file for storage
+    f = open('keys.txt', 'w')
+    f.write(k1_encrypted.hex() + '::' + iv.hex() + '::' + k2_hashed.hex() + '::' + salt.hex())
+
+def filecrypt(file, passwd):
+    # Check if file exist
     if os.path.isfile(file):
+        # Read contents of file
         f = open(file, "rb")
         fread = f.read()
         f.close()
-        # Random 128-bit salt for password-based encryption
-        salt = os.urandom(16)
-        # Password derivation by PBKDF2
-        kdf = PBKDF2HMAC(hashes.SHA256(),32,salt,480000)
-        key = kdf.derive(passwd.encode())
-        # Random 128-bit initialization vector for CBC
+        # Initialization Vector for encryption
         iv = os.urandom(16)
-        # Cipher using AES in CBC mode
-        cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
-        encryptor = cipher.encryptor()
-        # File padding to fit 128-bit blocks
+        # Cryptguard Cipher
+        cryptguard = Cipher(algorithms.AES(key), modes.CBC(iv))
+        # Padder
         padder = padding.PKCS7(128).padder()
-        padded_file = padder.update(fread) + padder.finalize()
-        # encryption
-        ciphered_content = encryptor.update(padded_file) + encryptor.finalize()
+        padded_content = padder.update(fread) + padder.finalize()
+        # Into the crypt
+        tomb = cryptguard.encryptor().update(padded_content) + cryptguard.encryptor().finalize()
         f = open(file, 'wb')
-        f.write(ciphered_content)
+        f.write(tomb)
         f.close()
-        # Password "database"
-        f = open('passwd.txt', 'a')
-        f.write(file + '::' + key.hex() + '::' + salt.hex() + '::' + iv.hex())
-        f.close()
+        # Write tombstone
+        f = open('tomb.txt', 'w')
+        f.write(file + '::' + iv.hex())
     else:
         print("file not found")
 
@@ -72,7 +87,7 @@ def main():
     if (args.mode == 0):
         passwd = input('Enter your encrypting password: ')
         if passwd:
-            encryption(args.file, passwd)
+            filecrypt(args.file, passwd)
         else:
             print('Enter a valid password')
     elif (args.mode == 1):
