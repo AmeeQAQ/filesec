@@ -154,7 +154,7 @@ def changepass(newpasswd, k1):
 def parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", 
-                        help="0 to encrypt, 1 to decrypt, 2 to establish a new password", required=False, type=int)
+                        help="0 to encrypt, 1 to decrypt, 2 to establish a new password, 3 to generate your key", required=False, type=int)
     parser.add_argument("-f", "--file", 
                         help="file to be encrypted. Use the absolute route if the file is not in the same directory as the script", required=False)
     return parser
@@ -181,6 +181,12 @@ def main():
                     print("Incorrect password")
             else:
                 print('Password mismatch')
+        
+        case 3:
+            if os.path.isfile('keys.txt'):
+                print('Key already exists')
+            else:
+                keygen(passwd.encode())
     
 
 if __name__ == '__main__' : 
