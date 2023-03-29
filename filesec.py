@@ -44,33 +44,54 @@ def dk1(passwd, salt, ck1, iv):
     k1 = cryptguard.decryptor().update(ck1) + cryptguard.decryptor().finalize()
     return k1
 
+
+def keysplit(keyfile):
+    f = open(keyfile, 'r')
+    keyring = f.read()
+    f.close()
+    keys = keyring.split('::')
+    return keys
+
+# Cipher function with encryption and decryption modes
+def cryptguard(mode, key, iv, data):
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+    match mode:
+        case 0:
+            # Padder
+            padder = padding.PKCS7(128).padder()
+            entomb = padder.update(data) + padder.finalize()
+            # Padded plaintext to ciphertext
+            close = cipher.encryptor().update(entomb) + cipher.encryptor().finalize()
+            return close
+        case 1:
+            # Ciphertext to padded plaintext
+            open = cipher.decryptor().update(data) + cipher.decryptor().finalize()
+            # Plaintext
+            unpadder = padding.PKCS7(128).unpadder()
+            revived = unpadder.update(open) + unpadder.finalize()
+            return revived
+
+
 # The (en)Crypt
 def filecrypt(file, passwd):
     # Check if file exist
     if os.path.isfile(file):
-        # Check passwd against hashed k2
-        f = open('keys.txt', 'r')
-        keyring = f.read()
-        f.close()
-        keys = keyring.split('::')
+        keys = keysplit('keys.txt')
+        # Password auth
         if auth(passwd, keys):
             # Decrypt k1
             k1 = dk1(passwd, bytes.fromhex(keys[3]), bytes.fromhex(keys[0]), bytes.fromhex(keys[1]))
             # Read contents of file
             f = open(file, "rb")
-            fread = f.read()
+            corpse = f.read()
             f.close()
             # Initialization Vector for encryption
             iv = os.urandom(16)
             # Call the Cryptguard
-            cryptguard = Cipher(algorithms.AES(k1), modes.CBC(iv))
-            # Padder
-            padder = padding.PKCS7(128).padder()
-            bury = padder.update(fread) + padder.finalize()
+            coffin = cryptguard(0, k1, iv, corpse)
             # Into the Crypt
-            tomb = cryptguard.encryptor().update(bury) + cryptguard.encryptor().finalize()
             f = open(file, 'wb')
-            f.write(tomb)
+            f.write(coffin)
             f.close()
             # Write tombstone
             f = open('tomb.txt', 'w')
@@ -94,17 +115,15 @@ def filedecrypt(file, passwd):
             k1 = dk1(passwd, bytes.fromhex(keys[3]), bytes.fromhex(keys[0]), bytes.fromhex(keys[1]))
             # Read tombstone
             f = open('tomb.txt', 'r')
-            inscription = f.read()
+            tombstone = f.read()
             f.close()
-            filecrypted = inscription.split('::')
-            # Call the Cryptguard
-            cryptguard = Cipher(algorithms.AES(k1), modes.CBC(bytes.fromhex(filecrypted[1])))
-            unpadder = padding.PKCS7(128).unpadder()
+            inscription = tombstone.split('::')
+            # Read contents file
             f = open(file, 'rb')
             corpse = f.read()
             f.close()
-            unearthed = cryptguard.decryptor().update(corpse) + cryptguard.decryptor().finalize()
-            revived = unpadder.update(unearthed) + unpadder.finalize()
+            # Call the Cryptguard
+            revived = cryptguard(1, k1, bytes.fromhex(inscription[1]), corpse)
             f = open(file, 'wb')
             f.write(revived)
             f.close()
@@ -142,7 +161,7 @@ def parser():
 
 def main():
     args = parser().parse_args()
-    passwd = input('Enter encrypt password: ')
+    passwd = input('Enter password: ')
     match args.mode:
         case 0:
             filecrypt(args.file, passwd.encode())
@@ -151,10 +170,7 @@ def main():
             filedecrypt(args.file, passwd.encode())
 
         case 2:
-            f = open('keys.txt', 'r')
-            keyring = f.read()
-            f.close()
-            keys = keyring.split('::')
+            keys = keysplit('keys.txt')
             if auth(passwd.encode(), keys):
                 newpasswd = input('Enter a new password: ')
                 newconf = input ('Repeat new password: ')
