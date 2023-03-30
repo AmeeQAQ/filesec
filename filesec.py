@@ -154,7 +154,7 @@ def changepass(newpasswd, k1):
 def parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", 
-                        help="0 to encrypt, 1 to decrypt, 2 to establish a new password, 3 to generate your key", required=False, type=int)
+                        help="0 to encrypt, 1 to decrypt, 2 to establish a new password, 3 to generate your key", required=True, type=int)
     parser.add_argument("-f", "--file", 
                         help="file to be encrypted. Use the absolute route if the file is not in the same directory as the script", required=False)
     return parser
