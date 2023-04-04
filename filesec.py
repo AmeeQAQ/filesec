@@ -27,7 +27,7 @@ def keygen(passwd):
     digest.update(k2) 
     k2_hashed = digest.finalize()
     # Generate plaintext file for storage
-    f = open('keys.txt', 'w')
+    f = open(os.environ['KEYRING'], 'w')
     f.write(k1_encrypted.hex() + '::' + iv.hex() + '::' + k2_hashed.hex() + '::' + salt.hex())
 
 # Authentication function to check if password is correct
@@ -102,7 +102,7 @@ def filecrypt(file, passwd, keys):
             f.write(coffin)
             f.close()
             # Write tombstone
-            f = open(os.environ['TOMB'])
+            f = open(os.environ['TOMB'], 'r+')
             f.write(file + '::' + iv.hex())
         else:
             print("Password mismatch")
@@ -153,7 +153,7 @@ def changepass(newpasswd, k1):
     digest.update(k2) 
     k2_hashed = digest.finalize()
     # Generate plaintext file for storage
-    f = open(os.environ['KEYRING'], 'w')
+    f = open(os.environ['KEYRING'], 'r+')
     f.write(k1_encrypted.hex() + '::' + iv.hex() + '::' + k2_hashed.hex() + '::' + salt.hex())
 
 # Parser for Command-Line arguments
