@@ -12,7 +12,7 @@ The script needs at least one parameter, which is `-m`, `--mode`. It has four po
 The second parameter is `-f`, `--file`. Used to specify the file's path.
 
 ## How it works
-The script works with [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption in [CBC](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation) mode and two keys:
+The script works with [AES encryption](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) in [CBC](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation) mode and two keys:
 - k1: generated automatically in mode 3. 128-bit random key used to encrypt all the data.
 - k2: key derived from your entered password using [PBKDF2](https://en.wikipedia.org/wiki/PBKDF2). This key will be used to encrypt k1 so we can store it safely and allow us to change our password without having to decrypt everything.
 k2 will then be hashed with [SHA-256](https://en.wikipedia.org/wiki/SHA-2) and stored with its [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)).  
