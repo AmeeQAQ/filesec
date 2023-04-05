@@ -6,23 +6,23 @@ def filecrypt(file, passwd, keys):
     if os.path.isfile(file):
         # Password auth
         if auth(passwd, keys):
-            # Decrypt k1
-            k1 = dk1(passwd, bytes.fromhex(keys[3]), bytes.fromhex(keys[0]), bytes.fromhex(keys[1]))
+            # Decrypt k1 
+            k1 = dk1(passwd, bytes.fromhex(keys[2]), bytes.fromhex(keys[0]))
+            print(k1.hex())
             # Read contents of file
             f = open(file, "rb")
             corpse = f.read()
             f.close()
             # Initialization Vector for encryption
             iv = os.urandom(16)
+            print(iv.hex())
             # Call the Cryptguard
             coffin = cryptguard(0, k1, iv, corpse)
+            print(coffin.hex())
             # Into the Crypt
             f = open(file, 'wb')
-            f.write(coffin)
+            f.write(iv + coffin)
             f.close()
-            # Write tombstone
-            f = open(os.environ['TOMB'], 'r+')
-            f.write(file + '::' + iv.hex())
         else:
             print("Password mismatch")
     else:
@@ -35,18 +35,16 @@ def filedecrypt(file, passwd, keys):
         # Password auth
         if auth(passwd, keys):
             # Decrypt k1
-            k1 = dk1(passwd, bytes.fromhex(keys[3]), bytes.fromhex(keys[0]), bytes.fromhex(keys[1]))
-            # Read tombstone
-            f = open(os.environ['TOMB'], 'r')
-            tombstone = f.read()
-            f.close()
-            inscription = tombstone.split('::')
+            k1 = dk1(passwd, bytes.fromhex(keys[2]), bytes.fromhex(keys[0]))
+            print(k1.hex())
             # Read contents file
             f = open(file, 'rb')
             corpse = f.read()
             f.close()
             # Call the Cryptguard
-            revived = cryptguard(1, k1, bytes.fromhex(inscription[1]), corpse)
+            file_iv = corpse[:16]
+            filebody = corpse[16:]
+            revived = cryptguard(1, k1, file_iv, filebody)
             f = open(file, 'wb')
             f.write(revived)
             f.close()

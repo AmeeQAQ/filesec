@@ -37,7 +37,7 @@ def main():
                 # Password confirmation
                 if newpasswd == newconf:
                     # Decryption of k1
-                    k1 = dk1(passwd.encode(), bytes.fromhex(keys[3]), bytes.fromhex(keys[0]), bytes.fromhex(keys[1]))
+                    k1 = dk1(passwd.encode(), bytes.fromhex(keys[2]), bytes.fromhex(keys[0]))
                     # Change password
                     changepass(newpasswd.encode(), k1)
                 else:
