@@ -11,12 +11,12 @@ def cryptguard(mode, key, iv, data):
             padder = padding.PKCS7(128).padder()
             entomb = padder.update(data) + padder.finalize()
             # Padded plaintext to ciphertext
-            close = cipher.encryptor().update(entomb) + cipher.encryptor().finalize()
-            return close
+            ciphertext = cipher.encryptor().update(entomb) + cipher.encryptor().finalize()
+            return ciphertext
         case 1:
             # Ciphertext to padded plaintext
             open = cipher.decryptor().update(data) + cipher.decryptor().finalize()
             # Plaintext
             unpadder = padding.PKCS7(128).unpadder()
-            revived = unpadder.update(open) + unpadder.finalize()
-            return revived
+            plaintext = unpadder.update(open) + unpadder.finalize()
+            return plaintext
