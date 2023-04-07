@@ -39,7 +39,6 @@ def auth(passwd, keys):
 def keygen(passwd):
     # Randomly generated key to encrypt files
     k1 = os.urandom(16)
-    print(k1.hex())
     # Salt is the spice of life
     salt = os.urandom(16)
     kdf = PBKDF2HMAC(hashes.SHA256(),32,salt,480000)

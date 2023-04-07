@@ -8,17 +8,14 @@ def filecrypt(file, passwd, keys):
         if auth(passwd, keys):
             # Decrypt k1 
             k1 = dk1(passwd, bytes.fromhex(keys[2]), bytes.fromhex(keys[0]))
-            print(k1.hex())
             # Read contents of file
             f = open(file, "rb")
             corpse = f.read()
             f.close()
             # Initialization Vector for encryption
             iv = os.urandom(16)
-            print(iv.hex())
             # Call the Cryptguard
             coffin = cryptguard(0, k1, iv, corpse)
-            print(coffin.hex())
             # Into the Crypt
             f = open(file, 'wb')
             f.write(iv + coffin)
@@ -36,7 +33,6 @@ def filedecrypt(file, passwd, keys):
         if auth(passwd, keys):
             # Decrypt k1
             k1 = dk1(passwd, bytes.fromhex(keys[2]), bytes.fromhex(keys[0]))
-            print(k1.hex())
             # Read contents file
             f = open(file, 'rb')
             corpse = f.read()
